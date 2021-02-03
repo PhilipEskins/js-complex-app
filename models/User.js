@@ -52,6 +52,17 @@ User.prototype.cleanUp = function() {
     }
 }
 
+User.prototype.login = function(callback) {
+    this.cleanUp()
+    usersCollection.findOne({username: this.data.username}, (err, attemptedUser) => {
+        if (attemptedUser && attemptedUser.password == this.data.password) {
+            callback("Good jorb")
+        } else {
+            callback("Invaild")
+        }
+    })
+}
+
 User.prototype.register = function() {
     // Step 1 Validate user data
     this.cleanUp()
