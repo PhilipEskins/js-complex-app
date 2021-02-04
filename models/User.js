@@ -52,14 +52,18 @@ User.prototype.cleanUp = function() {
     }
 }
 
-User.prototype.login = function(callback) {
-    this.cleanUp()
-    usersCollection.findOne({username: this.data.username}, (err, attemptedUser) => {
-        if (attemptedUser && attemptedUser.password == this.data.password) {
-            callback("Good jorb")
-        } else {
-            callback("Invaild")
-        }
+User.prototype.login = function() {
+    return new Promise((resolve, reject) => {
+        this.cleanUp()
+        usersCollection.findOne({username: this.data.username}).then((attemptedUser) => {
+            if (attemptedUser && attemptedUser.password == this.data.password) {
+                resolve("Good jorb")
+                 } else {
+                reject("Invaild")
+                }
+        }).catch(function() {
+            reject("Try again")
+        })
     })
 }
 
