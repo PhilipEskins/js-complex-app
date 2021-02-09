@@ -8,30 +8,49 @@ let User = function(data) {
 }
 
 User.prototype.validate = function() {
-    if (this.data.username == "") {
-        this.errors.push("Provide a username")
-    }
-    if (this.data.username != "" && !validator.isAlphanumeric(this.data.username)) {
-        this.errors.push("Enter valid username")
-    }
-    if (!validator.isEmail(this.data.email)) {
-        this.errors.push("Provide an email")
-    }
-    if (this.data.password == "") {
-        this.errors.push("Provide a password")
-    }
-    if (this.data.password.length > 0 && this.data.password.length < 3) {
-        this.errors.push("Password not long enough")
-    }
-    if (this.data.password.length > 50) {
-        this.errors.push("Password too long")
-    }
-    if (this.data.username.length > 0 && this.data.username.length < 3) {
-        this.errors.push("Username not long enough")
-    }
-    if (this.data.username.length > 30) {
-        this.errors.push("Username too long")
-    }
+    return new Promise(async (resolve, reject) => {
+        if (this.data.username == "") {
+            this.errors.push("Provide a username")
+        }
+        if (this.data.username != "" && !validator.isAlphanumeric(this.data.username)) {
+            this.errors.push("Enter valid username")
+        }
+        if (!validator.isEmail(this.data.email)) {
+            this.errors.push("Provide an email")
+        }
+        if (this.data.password == "") {
+            this.errors.push("Provide a password")
+        }
+        if (this.data.password.length > 0 && this.data.password.length < 3) {
+            this.errors.push("Password not long enough")
+        }
+        if (this.data.password.length > 50) {
+            this.errors.push("Password too long")
+        }
+        if (this.data.username.length > 0 && this.data.username.length < 3) {
+            this.errors.push("Username not long enough")
+        }
+        if (this.data.username.length > 30) {
+            this.errors.push("Username too long")
+        }
+    
+        // Only if username is valid, check if unique
+        if (this.data.username.length > 2 && this.data.username.length < 31 && validator.isAlphanumeric(this.data.username)) {
+            let usernameExists = await usersCollection.findOne({username: this.data.username})
+            if (usernameExists) {
+                this.errors.push("Username Taken")
+            }
+        }
+    
+        // Only if email is valid, check if unique
+        if (validator.isEmail(this.data.email)) {
+            let emailExists = await usersCollection.findOne({email: this.data.email})
+            if (emailExists) {
+                this.errors.push("Email Taken")
+            }
+        }
+        resolve()
+    })
 }
 
 User.prototype.cleanUp = function() {
@@ -69,17 +88,22 @@ User.prototype.login = function() {
 }
 
 User.prototype.register = function() {
-    // Step 1 Validate user data
-    this.cleanUp()
-    this.validate()
-
-    // Step 2 Save user data into database
-    if (!this.errors.length) {
-        // hash user password
-        let salt = bcrypt.genSaltSync(10)
-        this.data.password = bcrypt.hashSync(this.data.password, salt)
-        usersCollection.insertOne(this.data)
-    }
+    return new Promise(async (resolve, reject) => {
+        // Step 1 Validate user data
+        this.cleanUp()
+        await this.validate()
+    
+        // Step 2 Save user data into database
+        if (!this.errors.length) {
+            // hash user password
+            let salt = bcrypt.genSaltSync(10)
+            this.data.password = bcrypt.hashSync(this.data.password, salt)
+            await usersCollection.insertOne(this.data)
+            resolve()
+        } else {
+            reject(this.errors)
+        }
+    })
 }
 
 module.exports = User
