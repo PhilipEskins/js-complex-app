@@ -3,9 +3,11 @@ const usersCollection = require('../db').db().collection("users")
 const bcrypt = require('bcryptjs')
 const md5 = require('md5')
 
-let User = function(data) {
+let User = function(data, getAvatar) {
     this.data = data
     this.errors = []
+    if (getAvatar == undefined) {getAvatar = false}
+    if (getAvatar) {this.getAvatar()}
 }
 
 User.prototype.validate = function() {
