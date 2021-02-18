@@ -19,6 +19,10 @@ app.use(sessionOptions)
 app.use(flash())
 
 app.use(function(req, res, next) {
+    // make all flash messages avaialble
+    res.locals.errors = req.flash("errors")
+    res.locals.success = req.flash("success")
+
     // make user id available on req object
     if (req.session.user) {
         req.visitorId = req.session.user._id

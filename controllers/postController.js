@@ -30,3 +30,31 @@ exports.viewEditScreen = async function(req, res) {
         res.render('404')
     }
 }
+
+exports.edit = function(req, res) {
+    let post = new Post(req.body, req.visitorId, req.params.id)
+    post.update().then((status) => {
+        // the post was updated or visitor had permission but had error
+        if (status == "success") {
+            // post was updated
+            req.flash('success', "Post updated")
+            req.session.save(function () {
+                res.redirect(`/post/${req.params.id}/edit`)
+            })
+        } else {
+            // post wasn't updated
+            post.errors.forEach(function(errors) {
+                req.flash("errors", error)
+            })
+            req.session.save(function() {
+                res.redirect(`/post/${req.params.id}/edit`)
+            })
+        }
+    }).catch(() => {
+        // post with id not found or visitor isn't owner
+        req.flash('errors', 'Denied')
+        req.session.save(function() {
+            res.redirect("/")
+        })
+    })
+}
