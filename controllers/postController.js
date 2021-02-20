@@ -65,3 +65,17 @@ exports.edit = function(req, res) {
         })
     })
 }
+
+exports.delete = function(req, res) {
+    Post.delete(req.params.id, req.visitorId).then(() => {
+        req.flash("success", "Post deleted")
+        req.session.save(() => {
+            res.redirect(`/profile/${req.session.user.username}`)
+        })
+    }).catch(() => {
+        req.flash("errors", "Request Denined")
+        req.session.save(() => {
+            res.redirect("/")
+        })
+    })
+}
