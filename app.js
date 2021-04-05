@@ -54,13 +54,22 @@ app.set('view engine', 'ejs')
 app.use('/', router)
 
 const server = require('http').createServer(app)
-
 const io = require('socket.io')(server)
 
+io.use(function(socket, next) {
+    sessionOptions(socket.request, socket.request.res, next)
+})
+
 io.on('connection', function(socket) {
-    socket.on('chatMessage', function(data) {
-        io.emit('chatMessageServer', {message: data.message})
-    })
+    if (socket.request.session.user) {
+        let user = socket.request.session.user
+
+        socket.emit('welcome', {username: user.username, avatar: user.avatar})
+
+        socket.on('chatMessage', function(data) {
+            socket.broadcast.emit('chatMessageServer', {message: sanitizeHTML(data.message, {allowedTags: [], allowedAttributes: {}}), username: user.username, avatar: user.avatar})
+        })
+    }
 })
 
 module.exports = server
